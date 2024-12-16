@@ -44,3 +44,15 @@ libraries scanning project source files.
 
 More information about PlatformIO Library Dependency Finder
 - https://docs.platformio.org/page/librarymanager/ldf.html
+
+
+## Changelog
+
+### [Current Version]
+- Added a feature to register slave devices only if their RSSI is stronger than -60 dBm.
+- Enhanced `onDataRecv` to reject slaves with weak signals, preventing unnecessary registration of far or weak devices.
+- Added RSSI handling to improve network efficiency and maintain reliable communication.
+
+### [Previous Version]
+- Initial implementation of ESP-NOW communication for master-slave topology.
+- Supported basic master-slave communication with touch-triggered LED synchronization.

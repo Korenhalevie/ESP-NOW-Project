@@ -21,7 +21,7 @@ struct CommHandler {
     void discoverMaster();
     void checkMasterTimeout();
     void sendMessageToAllSlaves(const char *message);
-bool parseMacAddress(const String &macString, uint8_t *macArray);
+    bool parseMacAddress(const String &macString, uint8_t *macArray);
     void run(); // function to be called in loop() and runs the logic
 };
 

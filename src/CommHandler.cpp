@@ -51,6 +51,9 @@ void CommHandler::onDataRecv(const uint8_t *mac, const uint8_t *incomingData, in
 
     Serial.println("Received message: " + msg + " from MAC: " + macToString(mac));
 
+    // To receive the RSSI value of the received packet
+    int rssi = WiFi.RSSI();
+
     if (msg == "I_AM_MASTER") {
         memcpy(_masterMac, mac, 6);
         _hasMaster = true;
@@ -77,16 +80,27 @@ void CommHandler::onDataRecv(const uint8_t *mac, const uint8_t *incomingData, in
         digitalWrite(ledPin, ledState ? HIGH : LOW);
         Serial.println(String("LED state set to ") + (ledState ? "ON" : "OFF"));
     } else if (msg.startsWith("ADDME=")) {
-String macString = msg.substring(6);
-    uint8_t newSlaveMac[6];
-    if (parseMacAddress(macString, newSlaveMac)) {
-        MacAddress newSlave;
-        memcpy(newSlave.addr, newSlaveMac, 6); // Copy the MAC address to the struct
-        slaveMacs.push_back(newSlave);        // Add the new slave to the list
-        Serial.println("New slave added: " + macString);
-    }
-}
-}
+        String macString = msg.substring(6);
+                uint8_t newSlaveMac[6];
+                if (parseMacAddress(macString, newSlaveMac)) {
+                    if (rssi >= -60) {  // check if signal is stronger than -60 dbm
+                        auto it = std::find_if(slaveMacs.begin(), slaveMacs.end(), [&](const MacAddress& slave) {
+                            return memcmp(slave.addr, newSlaveMac, 6) == 0;
+                        });
+                        if (it == slaveMacs.end()) {
+                            MacAddress newSlave;
+                            memcpy(newSlave.addr, newSlaveMac, 6);
+                            slaveMacs.push_back(newSlave);
+                            Serial.println("New slave added (strong signal): " + macString);
+                        } else {
+                            Serial.println("Slave already exists: " + macString);
+                        }
+                    } else {
+                        Serial.println("Slave rejected due to weak signal: " + macString);
+                    }
+                }
+            }
+        }
 
 void CommHandler::sendBroadcastMessage(const char *message) {
     strcpy(_outgoingMessage.message, message);
